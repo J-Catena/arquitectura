@@ -1,73 +1,36 @@
-import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
-import type { Metadata } from 'next'
+import { prisma } from "@/lib/prisma"
+import { notFound } from "next/navigation"
 
-// ✅ Genera metadatos dinámicos para SEO
-export async function generateMetadata(
-    { params }: { params: { slug: string } }
-): Promise<Metadata> {
-    const project = await prisma.project.findUnique({
-        where: { slug: params.slug },
-        select: { title: true, description: true },
-    })
+export default async function ProyectoDetalle({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params
 
-    if (!project) {
-        return {
-            title: 'Proyecto no encontrado | Arquitectura',
-            description: 'El proyecto solicitado no existe o fue eliminado.',
-        }
+    if (!slug || typeof slug !== "string") {
+        return notFound()
     }
 
-    return {
-        title: `${project.title} | Proyectos de Arquitectura`,
-        description: project.description?.slice(0, 150),
-    }
-}
-
-// ✅ Página principal del detalle del proyecto
-export default async function ProyectoDetalle({
-    params,
-}: {
-    params: { slug: string }
-}) {
     const project = await prisma.project.findUnique({
-        where: { slug: params.slug },
+        where: { slug },
     })
 
     if (!project) return notFound()
 
     return (
-        <main className="mx-auto max-w-3xl p-6">
-            <header className="mb-6">
-                <h1 className="text-3xl font-semibold">{project.title}</h1>
-                <p className="text-sm text-gray-500 mt-1">/{project.slug}</p>
-            </header>
+        <main className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold mb-4">{project.title}</h1>
 
             {project.image && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={project.image}
                     alt={project.title}
-                    className="mb-6 w-full rounded-2xl object-cover max-h-[420px]"
+                    className="w-full rounded-lg mb-6"
                 />
             )}
 
-            {project.description ? (
-                <article className="prose prose-neutral max-w-none">
-                    <p>{project.description}</p>
-                </article>
-            ) : (
-                <p className="text-gray-500">Sin descripción.</p>
+            <p className="text-gray-700 mb-2">{project.description}</p>
+            {project.location && (
+                <p className="text-gray-500 text-sm">📍 {project.location}</p>
             )}
-
-            <footer className="mt-10">
-                <a
-                    href="/proyectos"
-                    className="text-blue-600 hover:underline text-sm"
-                >
-                    ← Volver al listado
-                </a>
-            </footer>
         </main>
     )
 }
