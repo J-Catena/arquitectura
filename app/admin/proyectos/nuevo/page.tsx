@@ -1,73 +1,155 @@
-import { prisma } from "@/lib/prisma"
-import { redirect } from "next/navigation"
+"use client"
 
-export default function NuevoProyectoPage() {
-    async function createProject(formData: FormData) {
-        "use server" // 🧠 acción del servidor
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
-        const title = formData.get("title")?.toString()
-        const description = formData.get("description")?.toString()
-        const location = formData.get("location")?.toString()
-        const image = formData.get("image")?.toString()
+export default function NuevoProyecto() {
+    const router = useRouter()
+    const [title, setTitle] = useState("")
+    const [description, setDescription] = useState("")
+    const [image, setImage] = useState<File | null>(null)
+    const [preview, setPreview] = useState<string>("")
+    const [uploading, setUploading] = useState(false)
+    const [message, setMessage] = useState("")
 
-        if (!title) {
-            throw new Error("El título es obligatorio")
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setUploading(true)
+        setMessage("")
+
+        try {
+            if (!image) {
+                setMessage("Por favor selecciona una imagen.")
+                setUploading(false)
+                return
+            }
+
+            // 🔹 Subimos la imagen a Cloudinary
+            const formData = new FormData()
+            formData.append("file", image)
+
+            const uploadRes = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            })
+
+            const uploadData = await uploadRes.json()
+            if (!uploadRes.ok) throw new Error(uploadData.error)
+
+            // 🔹 Guardamos el proyecto en la base de datos
+            const projectRes = await fetch("/api/projects", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title,
+                    description,
+                    imageUrl: uploadData.secure_url,
+                }),
+            })
+
+            if (!projectRes.ok) throw new Error("Error guardando el proyecto")
+
+            setMessage("✅ Proyecto creado correctamente")
+            setTitle("")
+            setDescription("")
+            setImage(null)
+            setPreview("")
+
+            setTimeout(() => router.push("/admin/proyectos"), 1500)
+        } catch (error: any) {
+            console.error(error)
+            setMessage("❌ Error al subir el proyecto")
+        } finally {
+            setUploading(false)
         }
-
-        await prisma.project.create({
-            data: {
-                title,
-                description,
-                location,
-                image,
-                slug: title.toLowerCase().replace(/\s+/g, "-"),
-            },
-        })
-
-        redirect("/admin/proyectos")
     }
 
     return (
-        <div className="max-w-xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6">Nuevo Proyecto</h1>
+        <div className="max-w-2xl mx-auto px-6 py-10 font-[Inter]">
+            <h1 className="text-3xl font-semibold mb-8 tracking-tight">
+                Nuevo Proyecto
+            </h1>
 
-            <form action={createProject} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* TÍTULO */}
                 <div>
-                    <label className="block text-sm font-medium">Título</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Título del proyecto
+                    </label>
                     <input
-                        name="title"
                         type="text"
-                        className="w-full border rounded-lg px-3 py-2 mt-1"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full border border-gray-300 focus:border-black rounded-xl px-4 py-3 text-gray-800 outline-none transition"
+                        placeholder="Ej: Vivienda moderna en Madrid"
                         required
                     />
                 </div>
 
+                {/* DESCRIPCIÓN */}
                 <div>
-                    <label className="block text-sm font-medium">Descripción</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Descripción
+                    </label>
                     <textarea
-                        name="description"
-                        className="w-full border rounded-lg px-3 py-2 mt-1"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="w-full border border-gray-300 focus:border-black rounded-xl px-4 py-3 text-gray-800 outline-none transition"
                         rows={4}
+                        placeholder="Describe brevemente el proyecto..."
+                        required
                     />
                 </div>
 
+                {/* IMAGEN */}
                 <div>
-                    <label className="block text-sm font-medium">Imagen (URL)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Imagen del proyecto
+                    </label>
+                    {preview && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                            src={preview}
+                            alt="Vista previa"
+                            className="w-full h-56 object-cover rounded-2xl mb-4 border border-gray-200 shadow-sm"
+                        />
+                    )}
                     <input
-                        name="image"
-                        type="url"
-                        className="w-full border rounded-lg px-3 py-2 mt-1"
-                        placeholder="https://ejemplo.com/imagen.jpg"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setImage(file)
+                            if (file) setPreview(URL.createObjectURL(file))
+                        }}
+                        className="block w-full text-sm text-gray-600 border border-gray-300 rounded-xl cursor-pointer focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 hover:file:bg-gray-200 transition"
+                        required
                     />
                 </div>
 
-                <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
-                >
-                    Guardar proyecto
-                </button>
+                {/* BOTONES */}
+                <div className="flex justify-end space-x-4 pt-4">
+                    <button
+                        type="button"
+                        onClick={() => router.push("/admin/proyectos")}
+                        className="px-5 py-2.5 rounded-xl border border-black text-black hover:bg-gray-100 transition font-medium"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        disabled={uploading}
+                        className="px-5 py-2.5 rounded-xl bg-black text-white hover:bg-gray-800 transition font-medium disabled:opacity-50"
+                    >
+                        {uploading ? "Subiendo..." : "Guardar proyecto"}
+                    </button>
+                </div>
             </form>
+
+            {message && (
+                <p className="mt-6 text-center text-gray-700">{message}</p>
+            )}
         </div>
     )
 }

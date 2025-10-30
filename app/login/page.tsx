@@ -21,45 +21,64 @@ export default function LoginPage() {
         })
 
         if (res?.error) {
-            setError("Credenciales incorrectas")
+            setError("Credenciales incorrectas. Inténtalo de nuevo.")
         } else {
             router.push("/admin/proyectos")
         }
     }
 
     return (
-        <main className="flex items-center justify-center min-h-screen bg-gray-50">
-            <form
-                onSubmit={handleSubmit}
-                className="bg-white p-8 rounded-2xl shadow-md w-80"
-            >
-                <h1 className="text-2xl font-semibold mb-6 text-center">Iniciar sesión</h1>
+        <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+            <div className="w-full max-w-sm bg-white shadow-md rounded-2xl p-8 border border-gray-100">
+                <h1 className="text-2xl font-semibold mb-6 text-center tracking-tight">
+                    Acceso administrativo
+                </h1>
 
-                <input
-                    type="email"
-                    placeholder="Email"
-                    className="w-full border rounded-xl p-2 mb-3"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-gray-700">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            placeholder="tuemail@estudio.com"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                <input
-                    type="password"
-                    placeholder="Contraseña"
-                    className="w-full border rounded-xl p-2 mb-4"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-gray-700">
+                            Contraseña
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="********"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
+                    {error && (
+                        <p className="text-sm text-red-600 text-center">{error}</p>
+                    )}
 
-                <button
-                    type="submit"
-                    className="w-full bg-black text-white rounded-xl py-2 hover:bg-gray-800"
-                >
-                    Entrar
-                </button>
-            </form>
+                    <button
+                        type="submit"
+                        className="w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-900 transition"
+                    >
+                        Entrar
+                    </button>
+                </form>
+
+                <p className="text-xs text-gray-400 text-center mt-6">
+                    © {new Date().getFullYear()} Alvaro Camacho — Arquitecto
+                </p>
+            </div>
         </main>
     )
 }

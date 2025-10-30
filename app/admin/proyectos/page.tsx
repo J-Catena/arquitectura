@@ -1,118 +1,147 @@
-"use client"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/authOptions"
+import { prisma } from "@/lib/prisma"
+import Link from "next/link"
+import { redirect } from "next/navigation"
+import { signOut } from "next-auth/react"
+import DeleteButton from "./DeleteButton"
+import SignOutButton from "./SignOutButton"
 
-import { useState } from "react"
 
-export default function Page() {
-    const [title, setTitle] = useState("")
-    const [description, setDescription] = useState("")
-    const [image, setImage] = useState<File | null>(null)
-    const [uploading, setUploading] = useState(false)
-    const [message, setMessage] = useState("")
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setUploading(true)
-        setMessage("")
+export default async function AdminProyectosPage() {
+    const session = await getServerSession(authOptions)
+    if (!session) redirect("/login")
 
-        try {
-            if (!image) {
-                setMessage("Por favor, selecciona una imagen")
-                setUploading(false)
-                return
-            }
-
-            // 1️⃣ Subimos la imagen a Cloudinary
-            const formData = new FormData()
-            formData.append("file", image)
-
-            const uploadRes = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            })
-
-            const uploadData = await uploadRes.json()
-            if (!uploadRes.ok) throw new Error(uploadData.error || "Error subiendo imagen")
-
-            console.log("✅ Imagen subida con éxito:", uploadData.secure_url)
-
-            // 2️⃣ Guardamos el proyecto en la base de datos
-            const saveRes = await fetch("/api/projects", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    imageUrl: uploadData.secure_url, // 👈 importante, coincide con la API
-                }),
-            })
-
-            if (!saveRes.ok) {
-                const error = await saveRes.json()
-                throw new Error(error.error || "Error guardando proyecto en la base de datos")
-            }
-
-            const savedProject = await saveRes.json()
-            console.log("💾 Proyecto guardado:", savedProject)
-
-            setMessage("✅ Proyecto subido correctamente")
-            setTitle("")
-            setDescription("")
-            setImage(null)
-        } catch (err: any) {
-            console.error(err)
-            setMessage("❌ Error al subir el proyecto")
-        } finally {
-            setUploading(false)
-        }
-    }
+    const projects = await prisma.project.findMany({
+        orderBy: { createdAt: "desc" },
+    })
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Subir nuevo proyecto</h1>
-
-            <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+        <main className="max-w-6xl mx-auto p-6">
+            {/* Header superior */}
+            <header className="flex items-center justify-between mb-10">
                 <div>
-                    <label className="block text-sm font-medium">Título</label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full border rounded px-3 py-2"
-                        required
-                    />
+                    <h1 className="text-3xl font-semibold">Panel de administración</h1>
+                    <p className="text-gray-500">
+                        Bienvenido, <span className="font-medium">{session.user?.name}</span>
+                    </p>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium">Descripción</label>
-                    <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="w-full border rounded px-3 py-2"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium">Imagen</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setImage(e.target.files?.[0] || null)}
-                        className="w-full border rounded px-3 py-2"
-                        required
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={uploading}
-                    className="bg-black text-white px-4 py-2 rounded disabled:opacity-50"
+                <form
+                    action={async () => {
+                        "use server"
+                        const { signOut } = await import("next-auth/react")
+                        await signOut({ redirect: true, callbackUrl: "/" })
+                    }}
                 >
-                    {uploading ? "Subiendo..." : "Subir proyecto"}
-                </button>
-            </form>
+                    <button
+                        type="submit"
+                        className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                        Cerrar sesión
+                    </button>
+                </form>
+            </header>
 
-            {message && <p className="mt-4">{message}</p>}
-        </div>
+            {/* Botón de nuevo proyecto */}
+            <div className="flex justify-end mb-6">
+                <Link
+                    href="/admin/proyectos/nuevo"
+                    className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+                >
+                    + Nuevo proyecto
+                </Link>
+            </div>
+
+            {/* Lista de proyectos */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+                {projects.map((p) => (
+                    <div
+                        key={p.id}
+                        className="
+        flex flex-col justify-between
+        border border-gray-200
+        rounded-2xl
+        overflow-hidden
+        shadow-sm
+        hover:shadow-md
+        transition-shadow
+        bg-white
+        h-[460px]
+      "
+                    >
+                        {/* Imagen */}
+                        <div className="w-full h-56 overflow-hidden">
+                            <img
+                                src={p.image || "/placeholder.jpg"}
+                                alt={p.title}
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                            />
+                        </div>
+
+                        {/* Contenido */}
+                        <div className="flex-1 flex flex-col justify-between p-5">
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2 line-clamp-1">
+                                    {p.title}
+                                </h3>
+                                <p className="text-sm text-gray-600 line-clamp-3">
+                                    {p.description}
+                                </p>
+                            </div>
+
+                            {/* Botones */}
+                            <div className="mt-5 border-t pt-4 flex justify-between items-center">
+                                <div className="flex gap-3">
+                                    <Link
+                                        href={`/admin/proyectos/edit/${p.id}`}
+                                        className="
+                bg-gray-100
+                text-gray-800
+                px-4 py-1.5
+                rounded-lg
+                text-sm
+                font-medium
+                hover:bg-gray-200
+                transition
+              "
+                                    >
+                                        Editar
+                                    </Link>
+
+                                    <Link
+                                        href={`/proyectos/${p.slug}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="
+                bg-black
+                text-white
+                px-4 py-1.5
+                rounded-lg
+                text-sm
+                font-medium
+                hover:bg-gray-800
+                transition
+              "
+                                    >
+                                        Ver proyecto
+                                    </Link>
+                                </div>
+
+                                <DeleteButton id={p.id} />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+
+            {projects.length === 0 && (
+                <p className="text-gray-500 text-center mt-20">
+                    No hay proyectos aún. ¡Crea el primero!
+                </p>
+            )}
+        </main>
     )
 }

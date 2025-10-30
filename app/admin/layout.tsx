@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/auth"
+import { authOptions } from "@/lib/authOptions"
 import { redirect } from "next/navigation"
 
 export default async function AdminLayout({
@@ -9,7 +9,9 @@ export default async function AdminLayout({
 }) {
     const session = await getServerSession(authOptions)
 
-    if (!session) redirect("/login")
+    if (!session) {
+        redirect("/login") 
+    }
 
-    return <div className="min-h-screen bg-gray-50">{children}</div>
+    return <>{children}</>
 }
