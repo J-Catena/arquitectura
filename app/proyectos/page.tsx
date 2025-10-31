@@ -1,16 +1,23 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import Image from "next/image"
 
 export default async function ProyectosPage() {
     const projects = await prisma.project.findMany({
         orderBy: { createdAt: "desc" },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            slug: true,
+            coverImage: true, // ✅ nueva imagen de portada
+        },
     })
 
     return (
         <main className="max-w-6xl mx-auto px-6 py-16">
             {/* HERO */}
             <section className="mb-24">
-                {/* Texto alineado a la izquierda */}
                 <div className="max-w-2xl">
                     <h1 className="text-[2.5rem] font-semibold leading-tight mb-4">
                         Shaping the Future <br /> of Architecture
@@ -20,17 +27,17 @@ export default async function ProyectosPage() {
                     </p>
                 </div>
 
-                {/* Imagen hero */}
                 <div className="w-full overflow-hidden rounded-xl">
-                    <img
+                    <Image
                         src="/Hero img.png"
                         alt="Arquitectura moderna"
+                        width={1200}
+                        height={500}
                         className="w-full h-[420px] md:h-[480px] object-cover"
+                        priority
                     />
                 </div>
             </section>
-
-
 
             {/* LISTADO DE PROYECTOS */}
             <section className="space-y-24">
@@ -40,20 +47,27 @@ export default async function ProyectosPage() {
                         className={`flex flex-col md:flex-row items-center gap-10 ${index % 2 === 1 ? "md:flex-row-reverse" : ""
                             }`}
                     >
-                        <div className="md:w-1/2">
+                        {/* Imagen de portada */}
+                        <div className="md:w-1/2 relative group overflow-hidden rounded-lg">
                             <Link href={`/proyectos/${project.slug}`}>
-                                <img
-                                    src={project.image ?? "/placeholder.jpg"}
+                                <Image
+                                    src={project.coverImage || "/placeholder.jpg"}
                                     alt={project.title}
-                                    className="w-full h-[360px] object-cover rounded-lg shadow-sm transition-transform duration-300 hover:scale-[1.02]"
+                                    width={800}
+                                    height={500}
+                                    className="w-full h-[360px] object-cover rounded-lg shadow-sm transition-transform duration-500 group-hover:scale-105"
                                 />
+                                {/* Overlay sutil al hover */}
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-lg"></div>
                             </Link>
                         </div>
 
+                        {/* Información */}
                         <div className="md:w-1/2">
                             <h2 className="text-2xl font-semibold mb-3">{project.title}</h2>
-                            <p className="text-gray-600 mb-4 leading-relaxed">
-                                {project.description ?? "Sin descripción disponible."}
+                            <p className="text-gray-600 mb-4 leading-relaxed line-clamp-3">
+                                {project.description ??
+                                    "Sin descripción disponible."}
                             </p>
                             <Link
                                 href={`/proyectos/${project.slug}`}
@@ -64,6 +78,12 @@ export default async function ProyectosPage() {
                         </div>
                     </div>
                 ))}
+
+                {projects.length === 0 && (
+                    <p className="text-gray-500 text-center py-20">
+                        No hay proyectos disponibles todavía.
+                    </p>
+                )}
             </section>
 
             {/* CTA FINAL */}
@@ -82,9 +102,11 @@ export default async function ProyectosPage() {
                 </div>
 
                 <div className="md:w-1/2">
-                    <img
+                    <Image
                         src="/work-with-us.png"
                         alt="Work with us"
+                        width={800}
+                        height={400}
                         className="w-full h-[380px] object-cover rounded-xl"
                     />
                 </div>

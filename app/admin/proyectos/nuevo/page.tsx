@@ -5,10 +5,17 @@ import { useRouter } from "next/navigation"
 
 export default function NuevoProyecto() {
     const router = useRouter()
+
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
-    const [image, setImage] = useState<File | null>(null)
-    const [preview, setPreview] = useState<string>("")
+    const [headerImage, setHeaderImage] = useState<File | null>(null)
+    const [coverImage, setCoverImage] = useState<File | null>(null)
+    const [gallery, setGallery] = useState<File[]>([])
+
+    const [headerPreview, setHeaderPreview] = useState<string>("")
+    const [coverPreview, setCoverPreview] = useState<string>("")
+    const [galleryPreview, setGalleryPreview] = useState<string[]>([])
+
     const [uploading, setUploading] = useState(false)
     const [message, setMessage] = useState("")
 
@@ -18,60 +25,74 @@ export default function NuevoProyecto() {
         setMessage("")
 
         try {
-            if (!image) {
-                setMessage("Por favor selecciona una imagen.")
-                setUploading(false)
-                return
+            if (!title.trim()) throw new Error("El título es obligatorio")
+            if (!coverImage) throw new Error("Debes subir una imagen de portada")
+
+            // 🔹 Subida de imágenes a Cloudinary
+            const uploadToCloudinary = async (files: File | File[]) => {
+                const formData = new FormData()
+                if (Array.isArray(files)) {
+                    files.forEach((f) => formData.append("file", f))
+                } else {
+                    formData.append("file", files)
+                }
+
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                })
+
+                const data = await res.json()
+                if (!res.ok) throw new Error(data.error || "Error al subir imagen")
+                return data
             }
 
-            // 🔹 Subimos la imagen a Cloudinary
-            const formData = new FormData()
-            formData.append("file", image)
+            // 🖼️ Subimos portada y cabecera
+            const coverUpload = await uploadToCloudinary(coverImage)
+            const headerUpload = headerImage ? await uploadToCloudinary(headerImage) : null
 
-            const uploadRes = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            })
+            // 📸 Subimos galería (si hay)
+            let galleryUrls: string[] = []
+            if (gallery.length > 0) {
+                const galleryUpload = await uploadToCloudinary(gallery)
+                galleryUrls = Array.isArray(galleryUpload)
+                    ? galleryUpload.map((img) => img.secure_url)
+                    : [galleryUpload.secure_url]
+            }
 
-            const uploadData = await uploadRes.json()
-            if (!uploadRes.ok) throw new Error(uploadData.error)
-
-            // 🔹 Guardamos el proyecto en la base de datos
-            const projectRes = await fetch("/api/projects", {
+            // 🔹 Guardamos en la base de datos
+            const res = await fetch("/api/projects", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     title,
                     description,
-                    imageUrl: uploadData.secure_url,
+                    coverImage: coverUpload.secure_url,
+                    headerImage: headerUpload?.secure_url || null,
+                    gallery: galleryUrls,
                 }),
             })
 
-            if (!projectRes.ok) throw new Error("Error guardando el proyecto")
+            if (!res.ok) throw new Error("Error guardando el proyecto")
 
             setMessage("✅ Proyecto creado correctamente")
-            setTitle("")
-            setDescription("")
-            setImage(null)
-            setPreview("")
-
             setTimeout(() => router.push("/admin/proyectos"), 1500)
-        } catch (error: any) {
-            console.error(error)
-            setMessage("❌ Error al subir el proyecto")
+        } catch (err: any) {
+            console.error(err)
+            setMessage("❌ " + (err.message || "Error al crear el proyecto"))
         } finally {
             setUploading(false)
         }
     }
 
     return (
-        <div className="max-w-2xl mx-auto px-6 py-10 font-[Inter]">
+        <div className="max-w-3xl mx-auto px-6 py-10 font-[Inter]">
             <h1 className="text-3xl font-semibold mb-8 tracking-tight">
                 Nuevo Proyecto
             </h1>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* TÍTULO */}
+            <form onSubmit={handleSubmit} className="space-y-8">
+                {/* 🏗️ Título */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Título del proyecto
@@ -86,7 +107,7 @@ export default function NuevoProyecto() {
                     />
                 </div>
 
-                {/* DESCRIPCIÓN */}
+                {/* 📝 Descripción */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Descripción
@@ -97,20 +118,18 @@ export default function NuevoProyecto() {
                         className="w-full border border-gray-300 focus:border-black rounded-xl px-4 py-3 text-gray-800 outline-none transition"
                         rows={4}
                         placeholder="Describe brevemente el proyecto..."
-                        required
                     />
                 </div>
 
-                {/* IMAGEN */}
+                {/* 🖋️ Imagen de portada */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Imagen del proyecto
+                        Imagen de portada
                     </label>
-                    {preview && (
-                        // eslint-disable-next-line @next/next/no-img-element
+                    {coverPreview && (
                         <img
-                            src={preview}
-                            alt="Vista previa"
+                            src={coverPreview}
+                            alt="Vista previa portada"
                             className="w-full h-56 object-cover rounded-2xl mb-4 border border-gray-200 shadow-sm"
                         />
                     )}
@@ -119,12 +138,64 @@ export default function NuevoProyecto() {
                         accept="image/*"
                         onChange={(e) => {
                             const file = e.target.files?.[0] || null
-                            setImage(file)
-                            if (file) setPreview(URL.createObjectURL(file))
+                            setCoverImage(file)
+                            if (file) setCoverPreview(URL.createObjectURL(file))
                         }}
-                        className="block w-full text-sm text-gray-600 border border-gray-300 rounded-xl cursor-pointer focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 hover:file:bg-gray-200 transition"
                         required
                     />
+                </div>
+
+                {/* 🏗️ Imagen de cabecera */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Imagen de cabecera (opcional)
+                    </label>
+                    {headerPreview && (
+                        <img
+                            src={headerPreview}
+                            alt="Vista previa cabecera"
+                            className="w-full h-56 object-cover rounded-2xl mb-4 border border-gray-200 shadow-sm"
+                        />
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setHeaderImage(file)
+                            if (file) setHeaderPreview(URL.createObjectURL(file))
+                        }}
+                    />
+                </div>
+
+                {/* 📸 Galería */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Galería de imágenes
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                            const files = Array.from(e.target.files || [])
+                            setGallery(files)
+                            setGalleryPreview(files.map((f) => URL.createObjectURL(f)))
+                        }}
+                    />
+
+                    {galleryPreview.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mt-4">
+                            {galleryPreview.map((src, i) => (
+                                <img
+                                    key={i}
+                                    src={src}
+                                    alt={`Galería ${i}`}
+                                    className="rounded-lg object-cover h-28 w-full border shadow-sm"
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* BOTONES */}
@@ -147,9 +218,7 @@ export default function NuevoProyecto() {
                 </div>
             </form>
 
-            {message && (
-                <p className="mt-6 text-center text-gray-700">{message}</p>
-            )}
+            {message && <p className="mt-6 text-center text-gray-700">{message}</p>}
         </div>
     )
 }

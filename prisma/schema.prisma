@@ -8,15 +8,28 @@ generator client {
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  slug        String   @unique
-  image       String?
-  location    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int             @id @default(autoincrement())
+  title         String
+  description   String?
+  coverImage    String?          
+  headerImage   String?          
+  slug          String           @unique
+  location      String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  gallery       GalleryImage[]   @relation("ProjectGallery")
 }
+
+
+model GalleryImage {
+  id        Int      @id @default(autoincrement())
+  url       String
+  order     Int       @default(0)  
+  project   Project   @relation("ProjectGallery", fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int
+}
+
 
 model User {
   id       Int      @id @default(autoincrement())

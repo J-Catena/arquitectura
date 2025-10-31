@@ -1,26 +1,186 @@
 @import "tailwindcss";
 
+/* 🎨 VARIABLES GLOBALES */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg: #ffffff;
+  --color-text: #111111;
+  --color-muted: #6b7280;
+  /* gray-500 */
+  --color-border: #e5e7eb;
+  /* gray-200 */
+  --color-accent: #000000;
+  --transition: all 0.25s ease;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* RESET BÁSICO */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  scroll-behavior: smooth;
+}
+
+/* TIPOGRAFÍA GLOBAL */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* LINKS */
+a {
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+/* TITULOS */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+/* PÁRRAFOS */
+p {
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+p.muted {
+  color: var(--color-muted);
+}
+
+/* BOTONES */
+button,
+.btn {
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-black {
+  background: var(--color-accent);
+  color: white;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+}
+
+.btn-black:hover {
+  background: #1a1a1a;
+}
+
+/* FORMULARIOS */
+input,
+textarea,
+select {
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  outline: none;
+  background: white;
+  transition: var(--transition);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-accent);
+}
+
+/* IMÁGENES */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* LAYOUT */
+main {
+  background: var(--color-bg);
+}
+
+/* FOOTER */
+footer {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+/* RESPONSIVE AJUSTES */
+@media (max-width: 768px) {
+  nav ul {
+    gap: 1.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .btn-black {
+    width: 100%;
+    text-align: center;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* --- Compatibilidad Tailwind 4 + global --- */
+@layer base {
+
+  html,
+  body {
+    @apply text-gray-900 bg-white font-sans;
+  }
+
+  a {
+    @apply transition duration-200;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-semibold text-gray-900;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
 }

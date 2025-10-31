@@ -7,10 +7,9 @@ const inter = Inter({
   display: "swap",
 })
 
-// 🧭 Metadatos generales
 export const metadata = {
-  title: "Arquitectura — Estudio",
-  description: "Portafolio profesional de arquitectura",
+  title: "Álvaro Camacho — Arquitectura",
+  description: "Portafolio profesional de arquitectura contemporánea",
 }
 
 export default function RootLayout({
@@ -23,17 +22,19 @@ export default function RootLayout({
       <body
         className={`${inter.className} bg-white text-gray-900 tracking-tight antialiased`}
       >
-        {/* ✅ HEADER */}
+        {/* 🔹 NAVBAR */}
         <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-          <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-5">
+          <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-12 py-6">
+            {/* LOGO / NOMBRE */}
             <Link
               href="/"
-              className="font-semibold text-lg tracking-wide hover:opacity-80 transition"
+              className="text-lg md:text-xl font-semibold tracking-wide hover:opacity-80 transition"
             >
-              <span className="text-gray-900">ALVARO CAMACHO</span>
+              ALVARO CAMACHO
             </Link>
 
-            <ul className="flex space-x-10 text-[15px] font-medium">
+            {/* ENLACES DE NAVEGACIÓN */}
+            <ul className="flex items-center space-x-8 md:space-x-12 text-[15px] font-medium">
               <li>
                 <Link
                   href="/"
@@ -62,25 +63,29 @@ export default function RootLayout({
           </nav>
         </header>
 
-        {/* ✅ CONTENIDO PRINCIPAL */}
+        {/* 🔹 CONTENIDO PRINCIPAL */}
         <main className="min-h-screen">{children}</main>
 
-        {/* ✅ FOOTER */}
-        <footer className="border-t border-gray-200 mt-20 py-6 text-sm text-gray-500 text-center">
-          <p>
-            © {new Date().getFullYear()} Alvaro Camacho — Arquitecto. Todos los derechos reservados.
-          </p>
+        {/* 🔹 FOOTER */}
+        <footer className="border-t border-gray-200 mt-24 py-10 text-center text-sm text-gray-500">
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <p className="text-gray-800 font-medium tracking-tight">
+              ALVARO CAMACHO
+            </p>
+            <p className="text-gray-500 mt-2">
+              © {new Date().getFullYear()} Álvaro Camacho — Arquitectura. Todos los derechos reservados.
+            </p>
 
-          <p className="mt-2">
-            <a
-              href="/admin/proyectos"
-              className="text-gray-400 hover:text-gray-700 transition text-xs"
-            >
-              Acceso administrativo
-            </a>
-          </p>
+            <p className="mt-3">
+              <Link
+                href="/admin/proyectos"
+                className="text-gray-400 hover:text-gray-700 text-xs transition"
+              >
+                Acceso administrativo
+              </Link>
+            </p>
+          </div>
         </footer>
-
       </body>
     </html>
   )

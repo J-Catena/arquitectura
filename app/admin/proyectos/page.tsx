@@ -74,7 +74,7 @@ export default async function AdminProyectosPage() {
                         {/* Imagen */}
                         <div className="w-full h-56 overflow-hidden">
                             <img
-                                src={p.image || "/placeholder.jpg"}
+                                src={p.coverImage || "/placeholder.jpg"}
                                 alt={p.title}
                                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                             />
