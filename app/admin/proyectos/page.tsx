@@ -1,25 +1,25 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/authOptions"
 import { prisma } from "@/lib/prisma"
-import Link from "next/link"
 import { redirect } from "next/navigation"
-import { signOut } from "next-auth/react"
+import Link from "next/link"
 import DeleteButton from "./DeleteButton"
-import SignOutButton from "./SignOutButton"
-
-
+import SignOutButton from "./SignOutButton" // 👈 tu botón client
 
 export default async function AdminProyectosPage() {
     const session = await getServerSession(authOptions)
+
+    // 🚫 Si no hay sesión, al login
     if (!session) redirect("/login")
 
+    // 📦 Traer proyectos
     const projects = await prisma.project.findMany({
         orderBy: { createdAt: "desc" },
     })
 
     return (
         <main className="max-w-6xl mx-auto p-6">
-            {/* Header superior */}
+            {/* HEADER */}
             <header className="flex items-center justify-between mb-10">
                 <div>
                     <h1 className="text-3xl font-semibold">Panel de administración</h1>
@@ -28,23 +28,11 @@ export default async function AdminProyectosPage() {
                     </p>
                 </div>
 
-                <form
-                    action={async () => {
-                        "use server"
-                        const { signOut } = await import("next-auth/react")
-                        await signOut({ redirect: true, callbackUrl: "/" })
-                    }}
-                >
-                    <button
-                        type="submit"
-                        className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-                    >
-                        Cerrar sesión
-                    </button>
-                </form>
+                {/* ✅ ahora sí: cierre de sesión en el cliente */}
+                <SignOutButton />
             </header>
 
-            {/* Botón de nuevo proyecto */}
+            {/* Botón nuevo proyecto */}
             <div className="flex justify-end mb-6">
                 <Link
                     href="/admin/proyectos/nuevo"
@@ -59,24 +47,16 @@ export default async function AdminProyectosPage() {
                 {projects.map((p) => (
                     <div
                         key={p.id}
-                        className="
-        flex flex-col justify-between
-        border border-gray-200
-        rounded-2xl
-        overflow-hidden
-        shadow-sm
-        hover:shadow-md
-        transition-shadow
-        bg-white
-        h-[460px]
-      "
+                        className="flex flex-col justify-between border border-gray-200 rounded-2xl overflow-hidden shadow-sm bg-white h-[460px]"
                     >
                         {/* Imagen */}
                         <div className="w-full h-56 overflow-hidden">
+                            {/* usamos coverImage, porque ya migraste el schema */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={p.coverImage || "/placeholder.jpg"}
                                 alt={p.title}
-                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                className="w-full h-full object-cover"
                             />
                         </div>
 
@@ -91,21 +71,12 @@ export default async function AdminProyectosPage() {
                                 </p>
                             </div>
 
-                            {/* Botones */}
+                            {/* Acciones */}
                             <div className="mt-5 border-t pt-4 flex justify-between items-center">
                                 <div className="flex gap-3">
                                     <Link
                                         href={`/admin/proyectos/edit/${p.id}`}
-                                        className="
-                bg-gray-100
-                text-gray-800
-                px-4 py-1.5
-                rounded-lg
-                text-sm
-                font-medium
-                hover:bg-gray-200
-                transition
-              "
+                                        className="bg-gray-100 text-gray-800 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
                                     >
                                         Editar
                                     </Link>
@@ -114,18 +85,9 @@ export default async function AdminProyectosPage() {
                                         href={`/proyectos/${p.slug}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="
-                bg-black
-                text-white
-                px-4 py-1.5
-                rounded-lg
-                text-sm
-                font-medium
-                hover:bg-gray-800
-                transition
-              "
+                                        className="bg-black text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition"
                                     >
-                                        Ver proyecto
+                                        Ver
                                     </Link>
                                 </div>
 
@@ -136,10 +98,9 @@ export default async function AdminProyectosPage() {
                 ))}
             </div>
 
-
             {projects.length === 0 && (
                 <p className="text-gray-500 text-center mt-20">
-                    No hay proyectos aún. ¡Crea el primero!
+                    No hay proyectos aún. Crea el primero.
                 </p>
             )}
         </main>

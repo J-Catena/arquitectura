@@ -76,7 +76,7 @@ export default async function ProyectosPage() {
 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                    src="/cta.jpg"
+                    src="/work-with-us.png"
                     alt="Arquitectura"
                     className="mt-10 md:mt-0 md:w-[380px] rounded-2xl object-cover shadow-md"
                 />

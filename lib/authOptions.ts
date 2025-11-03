@@ -1,12 +1,12 @@
 // lib/authOptions.ts
-import Credentials from "next-auth/providers/credentials"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 import type { NextAuthOptions } from "next-auth"
 
 export const authOptions: NextAuthOptions = {
     providers: [
-        Credentials({
+        CredentialsProvider({
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "text" },
@@ -18,19 +18,25 @@ export const authOptions: NextAuthOptions = {
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email },
                 })
+
                 if (!user) return null
 
                 const isValid = await bcrypt.compare(credentials.password, user.password)
                 if (!isValid) return null
 
-                // ✅ convertir el id de número a string
-                return { id: user.id.toString(), name: user.name, email: user.email }
+                return {
+                    id: user.id.toString(),
+                    name: user.name,
+                    email: user.email,
+                }
             },
         }),
     ],
+
     pages: {
         signIn: "/login",
     },
-    session: { strategy: "jwt" }, // Type-safe ahora
+
+    session: { strategy: "jwt" },
     secret: process.env.NEXTAUTH_SECRET,
 }

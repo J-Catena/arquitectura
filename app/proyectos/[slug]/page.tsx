@@ -69,14 +69,14 @@ export default async function ProyectoDetalle({ params }: Props) {
                                 key={img.id}
                                 src={img.url}
                                 alt={`${project.title} imagen ${img.id}`}
-                                className="rounded-2xl object-cover w-full h-[240px] sm:h-[300px] md:h-[360px] hover:scale-[1.03] transition-transform duration-500 shadow-sm"
+                                className="rounded-2xl object-cover w-full h-60 sm:h-[300px] md:h-[360px] hover:scale-[1.03] transition-transform duration-500 shadow-sm"
                             />
                         ))}
                     </div>
                 </section>
             )}
 
-            {/* 🏗️ CTA final */}
+            {/* CTA final */}
             <section className="flex flex-col md:flex-row items-center justify-between bg-gray-50 rounded-3xl p-10 md:p-16 shadow-sm">
                 <div className="max-w-md">
                     <h2 className="text-2xl font-semibold mb-4 text-gray-900">
@@ -96,7 +96,7 @@ export default async function ProyectoDetalle({ params }: Props) {
                 </div>
 
                 <img
-                    src="/cta.jpg"
+                    src="/work-with-us.png"
                     alt="Arquitectura"
                     className="mt-10 md:mt-0 md:w-[380px] rounded-2xl object-cover shadow-md"
                 />
