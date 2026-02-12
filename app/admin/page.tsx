@@ -8,7 +8,7 @@ export default async function ProyectosPage() {
 
     return (
         <main className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24 font-[Inter]">
-            {/* 🏗️ Encabezado */}
+            {/*  Encabezado */}
             <section className="text-center mb-16 md:mb-24">
                 <h1 className="text-4xl md:text-6xl font-semibold mb-4 tracking-tight">
                     Proyectos
@@ -20,7 +20,7 @@ export default async function ProyectosPage() {
                 </p>
             </section>
 
-            {/* 🏗️ Grid de proyectos */}
+            {/*  Grid de proyectos */}
             {projects.length === 0 ? (
                 <p className="text-center text-gray-500 text-lg">
                     Aún no hay proyectos publicados.
@@ -38,7 +38,7 @@ export default async function ProyectosPage() {
                             <img
                                 src={project.coverImage || "/placeholder.jpg"}
                                 alt={project.title}
-                                className="w-full h-[320px] object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                             />
 
                             {/* Contenido */}

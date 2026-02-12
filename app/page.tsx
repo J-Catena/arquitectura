@@ -9,7 +9,7 @@ export default async function HomePage() {
 
   return (
     <main className="max-w-7xl mx-auto px-6 md:px-12 py-20 font-[Inter]">
-      {/* 🏗️ HERO PRINCIPAL */}
+      {/*  HERO PRINCIPAL */}
       <section className="grid md:grid-cols-2 gap-16 items-center mb-32">
         <div>
           <h1 className="text-5xl md:text-6xl font-semibold leading-tight mb-6 text-gray-900 tracking-tight">
@@ -38,7 +38,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 🏗️ PROYECTOS DESTACADOS */}
+      {/*  PROYECTOS DESTACADOS */}
       <section className="mb-24">
         <h2 className="text-3xl md:text-4xl font-semibold mb-12 tracking-tight text-gray-900 text-center md:text-left">
           Proyectos destacados
@@ -76,7 +76,7 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* 🏗️ CTA FINAL */}
+      {/*  CTA FINAL */}
       <section className="flex flex-col md:flex-row items-center justify-between bg-gray-50 rounded-3xl p-10 md:p-16 shadow-sm">
         <div className="max-w-md">
           <h3 className="text-2xl font-semibold mb-4 text-gray-900">

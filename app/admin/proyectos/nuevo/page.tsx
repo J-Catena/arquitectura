@@ -8,6 +8,7 @@ export default function NuevoProyecto() {
 
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
+    const [location, setLocation] = useState("")
     const [headerImage, setHeaderImage] = useState<File | null>(null)
     const [coverImage, setCoverImage] = useState<File | null>(null)
     const [gallery, setGallery] = useState<File[]>([])
@@ -19,6 +20,21 @@ export default function NuevoProyecto() {
     const [uploading, setUploading] = useState(false)
     const [message, setMessage] = useState("")
 
+    // 🔹 Subida individual a Cloudinary
+    const uploadToCloudinary = async (file: File) => {
+        const formData = new FormData()
+        formData.append("file", file)
+
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+        })
+
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || "Error al subir imagen")
+        return data.secure_url
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setUploading(true)
@@ -27,37 +43,19 @@ export default function NuevoProyecto() {
         try {
             if (!title.trim()) throw new Error("El título es obligatorio")
             if (!coverImage) throw new Error("Debes subir una imagen de portada")
-
-            // 🔹 Subida de imágenes a Cloudinary
-            const uploadToCloudinary = async (files: File | File[]) => {
-                const formData = new FormData()
-                if (Array.isArray(files)) {
-                    files.forEach((f) => formData.append("file", f))
-                } else {
-                    formData.append("file", files)
-                }
-
-                const res = await fetch("/api/upload", {
-                    method: "POST",
-                    body: formData,
-                })
-
-                const data = await res.json()
-                if (!res.ok) throw new Error(data.error || "Error al subir imagen")
-                return data
-            }
+            if (!headerImage) throw new Error("Debes subir el logo o cabecera del proyecto")
 
             // 🖼️ Subimos portada y cabecera
-            const coverUpload = await uploadToCloudinary(coverImage)
-            const headerUpload = headerImage ? await uploadToCloudinary(headerImage) : null
+            const [coverUrl, headerUrl] = await Promise.all([
+                uploadToCloudinary(coverImage),
+                uploadToCloudinary(headerImage),
+            ])
 
             // 📸 Subimos galería (si hay)
             let galleryUrls: string[] = []
-            if (gallery.length > 0) {
-                const galleryUpload = await uploadToCloudinary(gallery)
-                galleryUrls = Array.isArray(galleryUpload)
-                    ? galleryUpload.map((img) => img.secure_url)
-                    : [galleryUpload.secure_url]
+            for (const img of gallery) {
+                const url = await uploadToCloudinary(img)
+                galleryUrls.push(url)
             }
 
             // 🔹 Guardamos en la base de datos
@@ -67,8 +65,9 @@ export default function NuevoProyecto() {
                 body: JSON.stringify({
                     title,
                     description,
-                    coverImage: coverUpload.secure_url,
-                    headerImage: headerUpload?.secure_url || null,
+                    location,
+                    coverImage: coverUrl,
+                    headerImage: headerUrl,
                     gallery: galleryUrls,
                 }),
             })
@@ -104,6 +103,20 @@ export default function NuevoProyecto() {
                         className="w-full border border-gray-300 focus:border-black rounded-xl px-4 py-3 text-gray-800 outline-none transition"
                         placeholder="Ej: Vivienda moderna en Madrid"
                         required
+                    />
+                </div>
+
+                {/* 📍 Ubicación */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ubicación
+                    </label>
+                    <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className="w-full border border-gray-300 focus:border-black rounded-xl px-4 py-3 text-gray-800 outline-none transition"
+                        placeholder="Ej: Málaga, España"
                     />
                 </div>
 
@@ -145,16 +158,16 @@ export default function NuevoProyecto() {
                     />
                 </div>
 
-                {/* 🏗️ Imagen de cabecera */}
+                {/* 🏗️ Logo o imagen de cabecera */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Imagen de cabecera (opcional)
+                        Logo o imagen de cabecera
                     </label>
                     {headerPreview && (
                         <img
                             src={headerPreview}
                             alt="Vista previa cabecera"
-                            className="w-full h-56 object-cover rounded-2xl mb-4 border border-gray-200 shadow-sm"
+                            className="w-full h-56 object-contain rounded-2xl mb-4 border border-gray-200 shadow-sm bg-gray-50"
                         />
                     )}
                     <input
@@ -165,6 +178,7 @@ export default function NuevoProyecto() {
                             setHeaderImage(file)
                             if (file) setHeaderPreview(URL.createObjectURL(file))
                         }}
+                        required
                     />
                 </div>
 

@@ -17,7 +17,7 @@ export default async function ProyectosPage() {
 
     return (
         <main className="max-w-6xl mx-auto px-6 py-16 md:py-24 font-[Inter]">
-            {/* 🏗️ HERO */}
+            {/* HERO */}
             <section className="mb-24 md:mb-32">
                 <div className="max-w-2xl">
                     <h1 className="text-[2.5rem] md:text-[3rem] font-semibold leading-tight mb-4">

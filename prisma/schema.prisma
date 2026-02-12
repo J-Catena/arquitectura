@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -36,4 +36,19 @@ model User {
   name     String
   email    String   @unique
   password String
+}
+
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  createdAt DateTime @default(now())
+
+  ip        String?
+  userAgent String?
+
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
 }
